@@ -17,6 +17,7 @@ func main() {
 
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.Login).Methods("POST")
+	router.HandleFunc("/refresh", authHandler.RefreshToken).Methods("POST")
 
 	protected := router.PathPrefix("/protected").Subrouter()
 	protected.Use(auth.AuthMiddleWare)

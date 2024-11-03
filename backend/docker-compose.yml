@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  backend:
+    image: trading-journal-backend
+    build: .
+    ports:
+      - "8080:8080"
+    secrets:
+      - jwt_secret_key
+
+secrets:
+  jwt_secret_key:
+    external: true

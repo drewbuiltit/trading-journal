@@ -4,3 +4,5 @@
 
 # Exclude local Go build files
 bin/
+
+.env

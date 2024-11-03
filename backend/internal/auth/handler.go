@@ -24,8 +24,13 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 type TokenResponse struct {
-	Token string `json:"token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -73,14 +78,59 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := GenerateJWT(user.ID)
+	accessToken, err := GenerateJWT(user.ID)
 	if err != nil {
-		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		http.Error(w, "Error generating access token", http.StatusInternalServerError)
 		return
 	}
 
+	refreshToken, err := GenerateRefreshToken(user.ID)
+	if err != nil {
+		http.Error(w, "Error generating refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	response := TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(TokenResponse{Token: token})
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	var req RefreshRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	claims, err := ParseRefreshToken(req.RefreshToken)
+	if err != nil {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	newAccessToken, err := GenerateJWT(claims.UserID)
+	if err != nil {
+		http.Error(w, "Error generating access token", http.StatusInternalServerError)
+		return
+	}
+
+	newRefreshToken, err := GenerateRefreshToken(claims.UserID)
+	if err != nil {
+		http.Error(w, "Error generating refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	response := TokenResponse{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *AuthHandler) ProtectedEndpoint(w http.ResponseWriter, r *http.Request) {
