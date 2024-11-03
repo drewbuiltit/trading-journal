@@ -1,0 +1,6 @@
+# Exclude git files
+.git
+.gitignore
+
+# Exclude local Go build files
+bin/
