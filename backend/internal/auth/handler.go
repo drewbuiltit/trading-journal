@@ -6,6 +6,7 @@ import (
 	"github.com/drewbuiltit/trading-journal/backend/internal/store"
 	"github.com/drewbuiltit/trading-journal/backend/pkg/utils"
 	"net/http"
+	"strconv"
 )
 
 type AuthHandler struct {
@@ -80,4 +81,15 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(TokenResponse{Token: token})
+}
+
+func (h *AuthHandler) ProtectedEndpoint(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(UserContextKey).(int)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Welcome, user #" + strconv.Itoa(userID)))
 }
