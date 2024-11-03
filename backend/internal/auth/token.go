@@ -7,7 +7,15 @@ import (
 	"time"
 )
 
-var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
+var jwtKey []byte
+
+func Init() {
+	key := os.Getenv("JWT_SECRET_KEY")
+	if key == "" {
+		panic("JWT_SECRET_KEY is not set")
+	}
+	jwtKey = []byte(key)
+}
 
 type Claims struct {
 	UserID int `json:"user_id"`
@@ -20,7 +28,7 @@ type RefreshClaims struct {
 }
 
 func GenerateJWT(userID int) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: userID,
 		StandardClaims: jwt.StandardClaims{

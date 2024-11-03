@@ -9,6 +9,8 @@ import (
 )
 
 func main() {
+	auth.Init()
+
 	router := mux.NewRouter()
 
 	s := store.NewMemoryStore()

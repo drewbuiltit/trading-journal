@@ -71,6 +71,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.Store.GetUserByEmail(req.Email)
 	if err != nil {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
 	}
 
 	if !utils.CheckPasswordHash(req.Password, user.Password) {
